@@ -1,7 +1,7 @@
 import React from 'react';
-import { SafeAreaView, View, Text, TouchableOpacity, Image } from 'react-native';
-import styles from '../styles/stylesPagPrincipal';
+import { Image, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import BottomNavBar from '../components/BottomNavBar';
+import styles from '../styles/stylesPagPrincipal';
 
 const PagPrincipal: React.FC = () => {
   return (
