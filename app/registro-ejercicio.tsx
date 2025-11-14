@@ -6,7 +6,6 @@ import styles from '../styles/stylesRegistroEjercicio';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-// Define tipo ampliado
 type Ejercicio = {
   id: string;
   nombre: string;
@@ -14,19 +13,27 @@ type Ejercicio = {
   repeticiones?: string;
   series?: string;
   descanso?: string;
+  historial?: Array<{
+    fecha: string;
+    peso: string;
+    repeticiones: string;
+    series: string;
+    descanso: string;
+  }>;
 };
+
 type Rutina = {
   id: string;
   nombre: string;
   ejercicios: Ejercicio[];
 };
+
 const STORAGE_KEY = 'rutinas_gym';
 
 const RegistroEjercicio: React.FC = () => {
   const router = useRouter();
   const { rutinaId, ejercicioId } = useLocalSearchParams();
 
-  // Estados locales del formulario
   const [nombre, setNombre] = useState('');
   const [peso, setPeso] = useState('');
   const [repeticiones, setRepeticiones] = useState('');
@@ -34,7 +41,6 @@ const RegistroEjercicio: React.FC = () => {
   const [descanso, setDescanso] = useState('');
 
   useEffect(() => {
-    // Cargar datos del ejercicio
     const cargarDatos = async () => {
       const value = await AsyncStorage.getItem(STORAGE_KEY);
       if (value && rutinaId && ejercicioId) {
@@ -55,7 +61,6 @@ const RegistroEjercicio: React.FC = () => {
     cargarDatos();
   }, [rutinaId, ejercicioId]);
 
-  // Guardar cambios
   const guardarCambios = async () => {
     const value = await AsyncStorage.getItem(STORAGE_KEY);
     if (value && rutinaId && ejercicioId) {
@@ -66,20 +71,35 @@ const RegistroEjercicio: React.FC = () => {
           ...r,
           ejercicios: r.ejercicios.map(e =>
             e.id === ejercicioId
-              ? { ...e, nombre, peso, repeticiones, series, descanso }
+              ? {
+                  ...e,
+                  peso,
+                  repeticiones,
+                  series,
+                  descanso,
+                  historial: [
+                    ...(e.historial ?? []),
+                    {
+                      fecha: new Date().toISOString().slice(0, 10),
+                      peso,
+                      repeticiones,
+                      series,
+                      descanso,
+                    },
+                  ],
+                }
               : e
-          )
+          ),
         };
       });
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(rutinas));
       Alert.alert('Cambios guardados', 'Los datos del ejercicio han sido registrados.');
-      router.back(); // Regresa a la rutina
+      router.back();
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Encabezado */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
@@ -90,10 +110,8 @@ const RegistroEjercicio: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Nombre del ejercicio (editable aquí si lo deseas) */}
       <Text style={styles.exerciseTitle}>{nombre}</Text>
 
-      {/* Campos de registro */}
       <View style={styles.field}>
         <View style={styles.fieldRow}>
           <Text style={styles.fieldLabel}>Peso</Text>
@@ -145,7 +163,6 @@ const RegistroEjercicio: React.FC = () => {
         />
       </View>
 
-      {/* Barra inferior */}
       <BottomNavBar activeTab="workout" />
     </SafeAreaView>
   );
