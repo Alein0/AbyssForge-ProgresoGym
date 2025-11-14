@@ -1,10 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, Modal, Platform, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  FlatList,
+  SafeAreaView,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import BottomNavBar from '../components/BottomNavBar';
 import styles from '../styles/stylesPagRutina';
+import { Platform } from "react-native";
+
 
 type Ejercicio = {
   id: string;
@@ -14,150 +23,159 @@ type Ejercicio = {
   series?: string;
   descanso?: string;
 };
+
 type Rutina = { id: string; nombre: string; ejercicios: Ejercicio[] };
 const STORAGE_KEY = 'rutinas_gym';
 
-const PantallaRutinas: React.FC = () => {
+const PantallaRutina: React.FC = () => {
   const router = useRouter();
-  const [rutinas, setRutinas] = useState<Rutina[]>([]);
-  const [menuVisible, setMenuVisible] = useState(false);
-  const [ejerciciosMenu, setEjerciciosMenu] = useState<Ejercicio[]>([]);
-  const [rutinaActualId, setRutinaActualId] = useState<string | null>(null);
+  const { id } = useLocalSearchParams();
+  const [rutina, setRutina] = useState<Rutina | null>(null);
 
+  // Cargar rutina
+  
   useEffect(() => {
-    const cargar = async () => {
-      const value = await AsyncStorage.getItem(STORAGE_KEY);
-      if (value) setRutinas(JSON.parse(value));
-      else setRutinas([]);
-    };
-    cargar();
-  }, []);
+  if (!id) return; // ← evitar ejecución prematura
+  const cargar = async () => {
+     const value = await AsyncStorage.getItem(STORAGE_KEY);
 
-  const abrirMenu = (ejercicios: Ejercicio[], rutinaId: string) => {
-    setEjerciciosMenu(ejercicios);
-    setRutinaActualId(rutinaId);
-    setMenuVisible(true);
-  };
-
-  const cerrarMenu = () => {
-    setMenuVisible(false);
-    setEjerciciosMenu([]);
-    setRutinaActualId(null);
-  };
-
-  // BOTÓN ELIMINAR: ¡robusto!
-const eliminarRutina = (id: string) => {
-  if (Platform.OS === 'web') {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar esta rutina?')) {
-      return;
+    if (value) {
+      const rutinas: Rutina[] = value ? JSON.parse(value) : [];
+      const encontrada = rutinas.find(r => String(r.id) === String(id));
+      setRutina(encontrada || null);
     }
-    const nuevasRutinas = rutinas.filter(r => r.id !== id);
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nuevasRutinas))
-      .then(() => setRutinas(nuevasRutinas))
-      .catch(() => alert('No se pudo eliminar la rutina.'));
-  } else {
-    Alert.alert(
-      'Eliminar rutina',
-      '¿Estás seguro de que deseas eliminar esta rutina?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Eliminar',
-          style: 'destructive',
-          onPress: () => {
-            const nuevasRutinas = rutinas.filter(r => r.id !== id);
-            AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nuevasRutinas))
-              .then(() => setRutinas(nuevasRutinas))
-              .catch(() => Alert.alert('Error', 'No se pudo eliminar la rutina.'));
-          }
-        }
-      ]
-    );
+  };
+  cargar();
+}, [id]);
+
+
+  //  ELIMINAR RUTINA COMPLETA
+  const eliminarRutina = async () => {
+
+  // ✔ Web: usar confirm() nativo del navegador
+  if (Platform.OS === "web") {
+    const confirmado = confirm("¿Seguro que deseas eliminar esta rutina?");
+    if (!confirmado) return;
+
+    const value = await AsyncStorage.getItem(STORAGE_KEY);
+    if (!value) return;
+
+    const rutinas: Rutina[] = JSON.parse(value);
+    const nuevas = rutinas.filter(r => String(r.id) !== String(id));
+
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nuevas));
+
+    alert("Rutina eliminada.");
+    router.replace('/');
+    return;
   }
+
+  // Móvil: usar Alert de React Native
+  Alert.alert(
+    "Eliminar rutina",
+    "¿Seguro que deseas eliminar esta rutina?",
+    [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Eliminar",
+        style: "destructive",
+        onPress: async () => {
+          const value = await AsyncStorage.getItem(STORAGE_KEY);
+          if (!value) return;
+
+          const rutinas: Rutina[] = JSON.parse(value);
+          const nuevas = rutinas.filter(r => String(r.id) !== String(id));
+
+          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nuevas));
+
+          Alert.alert("Rutina eliminada", "Se eliminó correctamente.", [
+            { text: "OK", onPress: () => router.replace('/rutinas') }
+          ]);
+        }
+      }
+    ]
+  );
 };
 
+  if (!rutina) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={{ color: '#fff', textAlign: 'center', marginTop: 40 }}>
+          Cargando rutina...
+        </Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Tus rutinas</Text>
-        <TouchableOpacity style={{ position: "absolute", right: 15 }} onPress={() => router.navigate('/AgregarRutina')}>
-          <Ionicons name="add-circle-outline" size={28} color="#4682B4" />
-        </TouchableOpacity>
-      </View>
+
+      {/* HEADER */}
+<View style={styles.header}>
+  
+  {/* Flecha a la izquierda */}
+  <View style={{ position: "absolute", left: 15 }}>
+    <TouchableOpacity onPress={() => router.back()}>
+      <Ionicons name="arrow-back" size={24} color="#fff" />
+    </TouchableOpacity>
+  </View>
+
+  {/* Título centrado */}
+  <Text style={styles.headerTitle}>{rutina.nombre}</Text>
+
+  {/* Botones a la derecha */}
+  <View style={{ position: "absolute", right: 15, flexDirection: "row" }}>
+    <TouchableOpacity onPress={eliminarRutina} style={{ marginRight: 15 }}>
+      <Ionicons name="trash-outline" size={26} color="red" />
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      onPress={() =>
+        router.navigate({
+          pathname: '/EditarRutina',
+          params: { id: rutina.id }
+        })
+      }
+    >
+      <Ionicons name="create-outline" size={26} color="#4fa3ff" />
+    </TouchableOpacity>
+  </View>
+
+</View>
+
+
+      {/* Lista de ejercicios */}
       <FlatList
-        data={rutinas}
+        data={rutina.ejercicios}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingBottom: 70, alignItems: 'center' }}
+        contentContainerStyle={{ paddingBottom: 70 }}
         renderItem={({ item }) => (
-          <View style={styles.rutinaCard}>
-            <TouchableOpacity style={{ flex: 1 }} onPress={() => router.navigate({ pathname: '/rutinas', params: { id: item.id } })}>
+          <TouchableOpacity
+            style={styles.rutinaCard}
+            onPress={() =>
+              router.navigate({
+                pathname: '/registro-ejercicio',
+                params: { rutinaId: rutina.id, ejercicioId: item.id }
+              })
+            }
+          >
+            <View style={{ flex: 1 }}>
               <Text style={styles.rutinaNombre}>{item.nombre}</Text>
-              <Text style={styles.rutinaCantidad}>{item.ejercicios.length} ejercicios</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{ marginLeft: 10 }}
-              onPress={() => abrirMenu(item.ejercicios, item.id)}
-            >
-              <Ionicons name="list-outline" size={24} color="#4682B4" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => router.navigate({ pathname: '/EditarRutina', params: { id: item.id } })}
-              style={{ marginLeft: 10 }}
-            >
-              <Ionicons name="create-outline" size={22} color="#4682B4" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{ marginLeft: 10 }}
-              onPress={() => eliminarRutina(item.id)}
-            >
-              <Ionicons name="trash-outline" size={22} color="#ee4444" />
-            </TouchableOpacity>
-          </View>
+
+              <Text style={styles.rutinaCantidad}>
+                Peso: {item.peso ?? '--'} kg
+              </Text>
+              <Text style={styles.rutinaCantidad}>
+                Reps: {item.repeticiones ?? '--'} | Series: {item.series ?? '--'} | Descanso: {item.descanso ?? '--'} s
+              </Text>
+            </View>
+          </TouchableOpacity>
         )}
       />
 
-      {/* Menú modal para ejercicios */}
-      <Modal visible={menuVisible} transparent animationType="slide">
-        <View style={styles.menuOverlay}>
-          <View style={styles.menuBox}>
-            <TouchableOpacity style={{ alignSelf: 'flex-end', marginBottom: 8 }} onPress={cerrarMenu}>
-              <Ionicons name="close" size={28} color="#4682B4" />
-            </TouchableOpacity>
-            <Text style={styles.menuTitle}>Ejercicios</Text>
-            {ejerciciosMenu.length === 0 ? (
-              <Text style={styles.menuVacio}>No hay ejercicios en esta rutina.</Text>
-            ) : (
-              ejerciciosMenu.map(ejercicio => (
-                <View key={ejercicio.id} style={styles.menuEjercicio}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.ejercicioNombre}>{ejercicio.nombre}</Text>
-                    <Text style={styles.ejercicioDato}>Peso: {ejercicio.peso ?? '--'} kg</Text>
-                    <Text style={styles.ejercicioDato}>
-                      Reps: {ejercicio.repeticiones ?? '--'} | Series: {ejercicio.series ?? '--'} | Descanso: {ejercicio.descanso ?? '--'} seg
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    style={{ marginLeft: 6 }}
-                    onPress={() => {
-                      cerrarMenu();
-                      router.navigate({
-                        pathname: '/registro-ejercicio',
-                        params: { rutinaId: rutinaActualId, ejercicioId: ejercicio.id }
-                      });
-                    }}
-                  >
-                    <Ionicons name="create-outline" size={22} color="#4682B4" />
-                  </TouchableOpacity>
-                </View>
-              ))
-            )}
-          </View>
-        </View>
-      </Modal>
       <BottomNavBar activeTab="workout" />
     </SafeAreaView>
   );
 };
 
-export default PantallaRutinas;
+export default PantallaRutina;

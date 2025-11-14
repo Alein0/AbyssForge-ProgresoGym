@@ -78,9 +78,16 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#4682B4',
-    justifyContent: 'center',
-    alignItems: 'center',
+  
   },
+  statsTitle: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  color: '#ffffffff',
+  marginVertical: 16,
+  textAlign: 'center',
+},
+
   placeholderText: {
     color: '#999',
     fontSize: 14,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, FlatList, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, SafeAreaView, Text, TextInput, TouchableOpacity, View, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import BottomNavBar from '../components/BottomNavBar';
@@ -16,6 +16,14 @@ const AgregarRutina: React.FC = () => {
   const [ejercicios, setEjercicios] = useState<Ejercicio[]>([]);
   const [nuevoEjercicio, setNuevoEjercicio] = useState('');
 
+  const showAlert = (title: string, msg: string) => {
+    if (Platform.OS === 'web') {
+      alert(`${title}\n${msg}`);
+    } else {
+      Alert.alert(title, msg);
+    }
+  };
+
   const agregarEjercicio = () => {
     if (!nuevoEjercicio.trim()) return;
     setEjercicios(prev => [...prev, { id: Date.now().toString(), nombre: nuevoEjercicio }]);
@@ -28,7 +36,7 @@ const AgregarRutina: React.FC = () => {
 
   const guardarCambios = async () => {
     if (!nombreRutina.trim() || ejercicios.length === 0) {
-      Alert.alert('Error', 'Completa el nombre y al menos un ejercicio');
+      showAlert('Error', 'Completa el nombre y al menos un ejercicio');
       return;
     }
 
@@ -42,11 +50,20 @@ const AgregarRutina: React.FC = () => {
       const value = await AsyncStorage.getItem(STORAGE_KEY);
       const rutinas: Rutina[] = value ? JSON.parse(value) : [];
       const nuevasRutinas = [nuevaRutina, ...rutinas];
+
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(nuevasRutinas));
-      Alert.alert('Rutina guardada', 'La rutina se ha agregado correctamente.');
-      router.replace('/rutinas');
+
+      showAlert('Rutina guardada', 'La rutina se ha agregado correctamente.');
+
+      // Evita recargas y loops
+      if (Platform.OS === 'web') {
+        router.replace('/');
+      } else {
+        router.push('/');
+      }
+
     } catch {
-      Alert.alert('Error', 'No se pudo guardar la rutina.');
+      showAlert('Error', 'No se pudo guardar la rutina.');
     }
   };
 
@@ -56,11 +73,14 @@ const AgregarRutina: React.FC = () => {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
+
         <Text style={styles.headerTitle}>Agregar Rutina</Text>
+
         <TouchableOpacity onPress={guardarCambios}>
           <Ionicons name="checkmark-outline" size={26} color="#4682B4" />
         </TouchableOpacity>
       </View>
+
       <View style={styles.section}>
         <Text style={styles.label}>Nombre de rutina</Text>
         <TextInput
@@ -71,6 +91,7 @@ const AgregarRutina: React.FC = () => {
           placeholderTextColor="#999"
         />
       </View>
+
       <View style={styles.section}>
         <Text style={styles.label}>Ejercicios</Text>
         <FlatList
@@ -94,6 +115,7 @@ const AgregarRutina: React.FC = () => {
           )}
         />
       </View>
+
       <View style={styles.addSection}>
         <TextInput
           style={styles.inputAdd}
@@ -106,6 +128,7 @@ const AgregarRutina: React.FC = () => {
           <Ionicons name="add-circle" size={34} color="#4682B4" />
         </TouchableOpacity>
       </View>
+
       <BottomNavBar activeTab="workout" />
     </SafeAreaView>
   );

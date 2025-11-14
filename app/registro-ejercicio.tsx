@@ -102,7 +102,7 @@ const RegistroEjercicio: React.FC = () => {
         <TextInput
           style={styles.input}
           value={peso}
-          onChangeText={setPeso}
+          onChangeText={text => setPeso(text.replace(/[^0-9]/g, ''))}
           placeholder="Ej: 60"
           placeholderTextColor="#888"
           keyboardType="numeric"
@@ -114,7 +114,7 @@ const RegistroEjercicio: React.FC = () => {
         <TextInput
           style={styles.input}
           value={repeticiones}
-          onChangeText={setRepeticiones}
+          onChangeText={text => setRepeticiones(text.replace(/[^0-9]/g, ''))}
           placeholder="Ej: 10"
           placeholderTextColor="#888"
           keyboardType="numeric"
@@ -126,7 +126,7 @@ const RegistroEjercicio: React.FC = () => {
         <TextInput
           style={styles.input}
           value={series}
-          onChangeText={setSeries}
+          onChangeText={text => setSeries(text.replace(/[^0-9]/g, ''))}
           placeholder="Ej: 4"
           placeholderTextColor="#888"
           keyboardType="numeric"
@@ -138,7 +138,7 @@ const RegistroEjercicio: React.FC = () => {
         <TextInput
           style={styles.input}
           value={descanso}
-          onChangeText={setDescanso}
+          onChangeText={text => setDescanso(text.replace(/[^0-9]/g, ''))}
           placeholder="Ej: 90"
           placeholderTextColor="#888"
           keyboardType="numeric"

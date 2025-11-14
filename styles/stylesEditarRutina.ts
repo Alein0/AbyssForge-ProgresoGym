@@ -10,13 +10,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
- backgroundColor: '#1d1d1d', // Fondo negro
-    paddingHorizontal: 20,
-     paddingTop: 70,
+    backgroundColor: '#1d1d1d', // Fondo negro
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    paddingTop: 70,
     borderBottomWidth: 1,
     borderBottomColor: '#4682B4',
-    
   },
+    
+  headerLeft: {
+    width: 40,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+  },
+
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 80,
+    justifyContent: 'flex-end',
+  },
+
+  
   headerTitle: {
     color: '#fff',
     fontSize: 16,
