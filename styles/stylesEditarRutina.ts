@@ -3,17 +3,19 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+      backgroundColor: '#1d1d1d', // Fondo negro
+     
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1A1A1A',
+ backgroundColor: '#1d1d1d', // Fondo negro
     paddingHorizontal: 20,
-    paddingVertical: 15,
+     paddingTop: 70,
     borderBottomWidth: 1,
     borderBottomColor: '#4682B4',
+    
   },
   headerTitle: {
     color: '#fff',

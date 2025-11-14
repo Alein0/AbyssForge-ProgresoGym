@@ -3,14 +3,15 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+         backgroundColor: '#1d1d1d', // Fondo negro
     paddingBottom: 80,
+        paddingTop: 40,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1A1A1A',
+  backgroundColor: '#1d1d1d', // Fondo negro
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   input: {
-    backgroundColor: '#121212',
+     backgroundColor: '#2e2e2eff', // Fondo negro
     color: '#fff',
     borderRadius: 6,
     paddingHorizontal: 10,
